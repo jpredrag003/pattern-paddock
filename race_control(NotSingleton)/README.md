@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg" alt="Python Version">
   <img src="https://img.shields.io/badge/OOP-Object%20Oriented-success.svg" alt="OOP">
   <img src="https://img.shields.io/badge/Thread--Safe-RLock-orange.svg" alt="Thread Safe">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
 </p>
 
 ---
