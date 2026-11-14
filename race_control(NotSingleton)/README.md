@@ -50,7 +50,7 @@ Projekat koristi isključivo **standardne Python biblioteke**, bez potrebe za in
 | `enum` | Definisanje striktno dozvoljenih statusa staze |
 | `logging` | Standardizovano beleženje događaja, promena i upozorenja |
 | `threading` | Sinhronizacija pristupa deljenim podacima (`RLock`) |
-| `Type Hints` | Jasnija definisati tipova i bolja statička analiza koda |
+| `Type Hints` | Jasnija definisanje tipova i bolja statička analiza koda |
 | **OOP** | Modularna organizacija sistema kroz klase i jasne odgovornosti |
 
 ---
