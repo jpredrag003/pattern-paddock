@@ -158,7 +158,6 @@ print("Evidencija kazni:", race_control.penalties_log)
 * Integracija SQLite ili PostgreSQL baze podataka radi trajnog skladištenja.
 * Kreiranje REST API interfejsa za komunikaciju sa spoljnim sistemima.
 * Proširenje evidencije kazni pretragom i filtriranjem.
-* Implementacija automatskih testova (`pytest` / `unittest`).
 * Čuvanje logova u fajlovima umesto samo u konzoli.
 
 ---
