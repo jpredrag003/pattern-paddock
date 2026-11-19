@@ -1,4 +1,4 @@
-# 🏍️ Apex Garage – Sistem za upravljanje MotoGP prototipovima i timskim motociklima
+# Apex Garage – Sistem za upravljanje MotoGP prototipovima i timskim motociklima
 
 ## 📖 Opis projekta
 **Apex Garage** je Python implementacija sistema za upravljanje registrovanim prototipovima po konfiguracijama staze i dodeljenim timskim motociklima. Sistem omogućava registraciju prototipova, kloniranje motocikala uz primenu izmena (*overrides*), normalizaciju ID oznaka motocikala, uklanjanje dodeljenih motocikala i pregled formatiranih specifikacija sa mernim jedinicama.
