@@ -10,7 +10,7 @@ from main import (
 
 @pytest.fixture
 def race_control() -> RaceControl:
-    """Vraća svežu instancu RaceControl-a za svaki test."""
+    """Daje novi RaceControl za svaki test."""
     return RaceControl("Monza")
 
 
