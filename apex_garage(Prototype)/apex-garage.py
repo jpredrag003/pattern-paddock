@@ -7,7 +7,7 @@ from enum import Enum
 from types import MappingProxyType
 from typing import Any, Mapping
 
-# Gornje domenske granice (šire od strogih MotoGP tehničkih pravilnika)
+# Širi opseg domena
 MAX_ENGINE_CAPACITY_CC = 2500
 MAX_HORSEPOWER = 600
 MAX_FUEL_CAPACITY_L = 50.0
@@ -20,15 +20,15 @@ class Configuration(Enum):
 
 
 class TeamConfigurationError(LookupError):
-    """Raised when a requested prototype configuration has not been registered."""
+    """Greška koja se javlja kada tražena konfiguracija prototipa nije registrovana."""
 
 
 class DuplicateBikeError(ValueError):
-    """Raised when attempting to register a bike ID that already exists."""
+    """Javlja se ako unosite ID motocikla koji je već registrovan u sistemu."""
 
 
 class BikeNotFoundError(LookupError):
-    """Raised when a requested bike ID is not assigned to the team."""
+    """Greška koja se javlja kada traženi ID motocikla nije dodeljen timu."""
 
 
 def _validate_bounds(
@@ -42,15 +42,15 @@ def _validate_bounds(
 ) -> None:
     if min_value is not None:
         if exclusive_min and value <= min_value:
-            raise ValueError(f"{name} must be greater than {min_value}.")
+            raise ValueError(f"{name} mora biti veći {min_value}.")
         if not exclusive_min and value < min_value:
-            raise ValueError(f"{name} must be greater than or equal to {min_value}.")
+            raise ValueError(f"{name} mora biti veći ili jednak {min_value}.")
 
     if max_value is not None:
         if exclusive_max and value >= max_value:
-            raise ValueError(f"{name} must be less than {max_value}.")
+            raise ValueError(f"{name} mora biti manji {max_value}.")
         if not exclusive_max and value > max_value:
-            raise ValueError(f"{name} must be less than or equal to {max_value}.")
+            raise ValueError(f"{name} mora biti manji ili jednak {max_value}.")
 
 
 def _require_bounded_number(
@@ -64,17 +64,17 @@ def _require_bounded_number(
     exclusive_max: bool = False,
 ) -> int | float:
     if isinstance(value, bool):
-        raise TypeError(f"{name} must be a number, not bool.")
+        raise TypeError(f"{name} mora biti broj.")
 
     if as_float:
         if not isinstance(value, (int, float)):
-            raise TypeError(f"{name} must be a real number.")
+            raise TypeError(f"{name} mora biti realan broj.")
         num: int | float = float(value)
         if not math.isfinite(num):
-            raise ValueError(f"{name} must be a finite number.")
+            raise ValueError(f"{name} mora biti konačan broj.")
     else:
         if not isinstance(value, int):
-            raise TypeError(f"{name} must be an int.")
+            raise TypeError(f"{name} mora da bude ceo broj.")
         num = value
 
     _validate_bounds(
@@ -134,28 +134,27 @@ def _require_bounded_float(
 
 def _require_non_empty_str(value: Any, field_name: str) -> str:
     if not isinstance(value, str):
-        raise TypeError(f"{field_name} must be a str.")
+        raise TypeError(f"{field_name} mora biti string.")
     cleaned = value.strip()
     if not cleaned:
-        raise ValueError(f"{field_name} must be a non-empty string.")
+        raise ValueError(f"{field_name} mora biti popunjen.")
     return cleaned
 
 
 def _require_configuration(configuration: Any) -> Configuration:
     if not isinstance(configuration, Configuration):
-        raise TypeError("Expected a Configuration enum member.")
+        raise TypeError("Očekuje se vrednost iz enum-a Configuration.")
     return configuration
 
 
 def _validate_electronics(settings: Any) -> MappingProxyType[str, int]:
     if not isinstance(settings, Mapping):
-        raise TypeError("electronics_settings must be a mapping of str to int.")
-
+        raise TypeError("electronics_settings mora biti struktura tipa str -> int.")
     validated: dict[str, int] = {}
     for raw_key, val in settings.items():
         key = _require_non_empty_str(raw_key, "Electronics setting key")
         validated[key] = _require_bounded_int(
-            val, f"Electronics setting '{key}'", min_value=0
+            val, f"Podešavanja elektronike '{key}'", min_value=0
         )
     return MappingProxyType(validated)
 
@@ -166,7 +165,7 @@ def _normalize_bike_id(bike_id: str) -> str:
 
 @dataclass(frozen=True)
 class Motorcycle:
-    """Immutable MotoGP motorcycle configuration that supports safe cloning with overrides."""
+    """Fiksna postavka MotoGP motora koja podržava sigurno kloniranje sa novim vrednostima."""
 
     model: str
     manufacturer: str
@@ -214,22 +213,20 @@ class Motorcycle:
         return {f.name for f in fields(cls)}
 
     def clone(self, **overrides: Any) -> Motorcycle:
-        """Return this instance when unchanged, or a validated copy with overrides."""
+        """Vraća ovu istu instancu ako nema izmena, ili njenu proverenu kopiju sa novim vrednostima."""
         if not overrides:
             return self
 
         unknown_fields = set(overrides) - self._field_names()
         if unknown_fields:
             unknown_list = ", ".join(sorted(unknown_fields))
-            raise TypeError(f"Unknown Motorcycle field(s): {unknown_list}")
+            raise TypeError(f"Nepoznati atribut(i) u definiciji motocikla: {unknown_list}")
 
         resolved: dict[str, Any] = {}
         for attr, value in overrides.items():
             if attr == "electronics_settings":
                 if not isinstance(value, Mapping):
-                    raise TypeError(
-                        "electronics_settings must be a mapping of str to int."
-                    )
+                    raise TypeError("electronics_settings mora imati strukturu mapiranja teksta u cele brojeve.")
                 merged = dict(self.electronics_settings)
                 merged.update(value)
                 resolved[attr] = merged
@@ -239,7 +236,7 @@ class Motorcycle:
         return replace(self, **resolved)
 
     def format_summary(self) -> str:
-        """Return a human-readable summary with engineering units."""
+        """Vraća rezime sa inženjerskim jedinicama."""
         electronics_str = (
             ", ".join(
                 f"{k}={v}" for k, v in sorted(self.electronics_settings.items())
@@ -260,7 +257,7 @@ class _BikeRecord:
 
 
 class MotoGPTeam:
-    """Manages prototype configurations and assigned team motorcycles."""
+    """Kontroliše konfiguracije prototipova i raspodelu timskih motocikala."""
 
     def __init__(self, name: str) -> None:
         self.name = _require_non_empty_str(name, "Team name")
@@ -269,21 +266,21 @@ class MotoGPTeam:
 
     @property
     def prototypes(self) -> dict[Configuration, Motorcycle]:
-        """Return a shallow copy of prototypes (safe because Motorcycle is immutable)."""
+        """Vraća plitku kopiju prototipova."""
         return dict(self._prototypes)
 
     @property
     def bikes(self) -> dict[str, Motorcycle]:
-        """Return assigned bikes keyed by original bike ID."""
+        """Prikazuje dodeljene motocikle grupisane prema izvornom ID-ju."""
         return {
             record.bike_id: record.motorcycle for record in self._bikes.values()
         }
 
     def register_prototype(self, configuration: Configuration, bike: Motorcycle) -> None:
-        """Register a prototype for the given track configuration."""
+        """Registruje prototip za datu konfiguraciju staze."""
         valid_config = _require_configuration(configuration)
         if not isinstance(bike, Motorcycle):
-            raise TypeError("Expected a Motorcycle instance.")
+            raise TypeError("Očekuje se instanca klase Motorcycle.")
         self._prototypes[valid_config] = bike
 
     def create_bike(
@@ -294,7 +291,7 @@ class MotoGPTeam:
         overwrite: bool = False,
         **overrides: Any,
     ) -> Motorcycle:
-        """Create and register a team bike by cloning a registered prototype."""
+        """Kreira i registruje timski motocikl kloniranjem već registrovanog prototipa."""
         clean_id = _require_non_empty_str(bike_id, "Bike ID")
         normalized_id = _normalize_bike_id(clean_id)
         valid_config = _require_configuration(configuration)
@@ -302,12 +299,12 @@ class MotoGPTeam:
         prototype = self._prototypes.get(valid_config)
         if prototype is None:
             raise TeamConfigurationError(
-                f"No registered prototype for configuration: {valid_config.value}"
+                f"Nema registrovanog prototipa za datu konfiguraciju: {valid_config.value}"
             )
 
         if normalized_id in self._bikes and not overwrite:
             raise DuplicateBikeError(
-                f"Bike with ID '{clean_id}' already exists. Pass overwrite=True to replace it."
+                f"Motocikl sa ID-jem '{clean_id}' već postoji. Prosledite overwrite=True da biste ga zamenili."
             )
 
         bike_instance = prototype.clone(**overrides)
@@ -317,11 +314,11 @@ class MotoGPTeam:
         return bike_instance
 
     def remove_bike(self, bike_id: str) -> Motorcycle:
-        """Remove and return an assigned team bike by ID."""
+        """Uklanja i vraća dodeljeni timski motocikl prema ID-ju."""
         normalized_id = _normalize_bike_id(bike_id)
         record = self._bikes.pop(normalized_id, None)
         if record is None:
-            raise BikeNotFoundError(f"No assigned bike found with ID '{bike_id}'.")
+            raise BikeNotFoundError(f"Nema dodeljenog motora sa oznakom '{bike_id}'..")
         return record.motorcycle
 
     @staticmethod
@@ -331,21 +328,21 @@ class MotoGPTeam:
         return "\n".join(f"  {key}: {bike.format_summary()}" for key, bike in entries)
 
     def format_prototypes(self) -> str:
-        """Format registered prototypes into a readable string."""
+        """Oblikuje listu registrovanih prototipova u lako čitljiv tekst."""
         items = [(config.value, bike) for config, bike in self._prototypes.items()]
         return self._format_entries(items)
 
     def format_bikes(self) -> str:
-        """Format assigned team bikes into a readable string."""
+        """Oblikuje dodeljene timske motore u lako čitljiv tekst."""
         items = [(record.bike_id, record.motorcycle) for record in self._bikes.values()]
         return self._format_entries(items)
 
     def show_prototypes(self) -> None:
-        """Print registered prototypes."""
+        """Prikazuje prototipove"""
         print(self.format_prototypes())
 
     def show_bikes(self) -> None:
-        """Print assigned team bikes."""
+        """Prikazuje dodeljene timske motocikle."""
         print(self.format_bikes())
 
 
