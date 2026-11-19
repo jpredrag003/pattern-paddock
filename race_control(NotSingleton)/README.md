@@ -1,4 +1,4 @@
-# 🏎️ Race Control – Sistem za kontrolu trke
+# Race Control – Sistem za kontrolu trke
 
 ## 📖 Opis projekta
 
