@@ -1,5 +1,5 @@
 import pytest
-from race_control import RaceControl, TrackStatus, InvalidInputError, InvalidTrackStatusError
+from main import RaceControl, TrackStatus, InvalidInputError, InvalidTrackStatusError
 
 
 def test_initial_state():
