@@ -311,56 +311,54 @@ class MotoGPBikeBuilder:
         return self
 
     def set_team(self, team: Team) -> Self:
-        """Postavlja fabrički tim u nacrt (validacija se izvršava u `build()`)."""
+        """Postavlja početni nacrt; validacija je u build()."""
         self._specs.team = team
         return self
 
     def set_engine_capacity(self, engine_capacity: int) -> Self:
-        """Postavlja zapreminu motora u `cc` u nacrt."""
+        """Beleži zapreminu motora u cc u nacrtu."""
         self._specs.engine_capacity = engine_capacity
         return self
 
     def set_horsepower(self, horsepower: int) -> Self:
-        """Postavlja snagu motora u `hp` u nacrt."""
+        """Beleži snagu motora u hp u nacrtu."""
         self._specs.horsepower = horsepower
         return self
 
     def set_weight(self, weight: float) -> Self:
-        """Postavlja masu motocikla u `kg` u nacrt."""
+        """Beleži masu motocikla u kg u nacrtu."""
         self._specs.weight = weight
         return self
 
     def set_component(self, slot: ComponentSlot, value: str) -> Self:
-        """Postavlja vrednost za izabrani `ComponentSlot` u nacrt."""
+        """Beleži vrednost za izabrani ComponentSlot u nacrtu."""
         if not isinstance(slot, ComponentSlot):
-            raise TypeError("Polje 'slot' mora biti vrednost iz ComponentSlot enum-a.")
+            raise TypeError("Polje 'slot' mora biti iz ComponentSlot enum-a.")
         self._specs.components[slot] = value
         return self
 
     def set_aerodynamics(self, aerodynamics: str) -> Self:
-        """Postavlja aerodinamički paket."""
+        """Postavlja aero paket."""
         return self.set_component(ComponentSlot.AERODYNAMICS, aerodynamics)
 
     def set_tyres(self, tyres: str) -> Self:
-        """Postavlja specifikaciju pneumatika."""
+        """Postavlja gume."""
         return self.set_component(ComponentSlot.TYRES, tyres)
 
     def set_electronics(self, electronics: str) -> Self:
-        """Postavlja konfiguraciju elektronike."""
+        """Postavlja elektroniku."""
         return self.set_component(ComponentSlot.ELECTRONICS, electronics)
 
     def set_exhaust(self, exhaust: str) -> Self:
-        """Postavlja izduvni sistem."""
+        """Postavlja auspuh."""
         return self.set_component(ComponentSlot.EXHAUST, exhaust)
 
     def build(self, *, reset_after_build: bool = False) -> MotoGPBike:
-        """Proverava kompletiranost nacrta i vraća validiran `MotoGPBike`."""
+        """Validira kompletan nacrt i vraća MotoGPBike."""
         missing = self._specs.missing_fields()
         if missing:
-            raise ValueError(
-                f"Nije moguće napraviti MotoGPBike. Nedostaju obavezna polja: {', '.join(missing)}."
-            )
-
+            raise ValueError(f"Greška za MotoGPBike: nedostaju {', '.join(missing)}.)
+            
         assert self._specs.team is not None
         assert self._specs.engine_capacity is not None
         assert self._specs.horsepower is not None
@@ -405,9 +403,4 @@ if __name__ == "__main__":
         components={"tyres": "Medium"},
     )
     print(qualifying_bike)
-        
-        
-        
-        
-        
-        
+    
