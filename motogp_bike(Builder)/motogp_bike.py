@@ -8,8 +8,7 @@ from typing import Self, TypedDict, Unpack, cast, overload
 
 
 class Team(Enum):
-    """Fabrički timovi u MotoGP šampionatu."""
-
+    """Fabrički MotoGP timovi."""
     DUCATI = "Ducati"
     APRILIA = "Aprilia"
     KTM = "KTM"
@@ -18,8 +17,7 @@ class Team(Enum):
 
 
 class ComponentSlot(StrEnum):
-    """Nazivi tehničkih komponenti motocikla."""
-
+    """Delovi motocikla."""
     AERODYNAMICS = "aerodynamics"
     TYRES = "tyres"
     ELECTRONICS = "electronics"
@@ -27,8 +25,7 @@ class ComponentSlot(StrEnum):
 
 
 class ComponentUpdates(TypedDict, total=False):
-    """Dozvoljene izmene nad tehničkim komponentama motocikla."""
-
+    """Šta se sme menjati na motoru."""
     aerodynamics: str
     tyres: str
     electronics: str
@@ -36,8 +33,7 @@ class ComponentUpdates(TypedDict, total=False):
 
 
 class BikeUpdates(TypedDict, total=False):
-    """Dozvoljena polja za kreiranje izmenjene kopije preko `with_updates`."""
-
+    """Šta se sme menjati pomoću with_updates."""
     team: Team
     engine_capacity: int
     horsepower: int
@@ -46,12 +42,12 @@ class BikeUpdates(TypedDict, total=False):
 
 
 def _validate_non_empty_str(value: object, name: str) -> str:
-    """Validira tekstualno polje i vraća normalizovan string."""
+    """Provera i normalizacija teksta."""
     if not isinstance(value, str):
         raise TypeError(f"Polje '{name}' mora biti tekst.")
     cleaned = value.strip()
     if not cleaned:
-        raise ValueError(f"Polje '{name}' mora biti neprazan tekst.")
+        raise ValueError(f"Polje '{name}' mora sadržati tekst.")
     return cleaned
 
 
@@ -63,9 +59,7 @@ def _validate_number(
     as_int: bool = ...,
     min_exclusive: float | None = ...,
     min_inclusive: float | None = ...,
-    max_inclusive: float | None = ...,
-) -> int | float: ...
-
+    max_inclusive: float | None = ...,) -> int | float: ...
 
 def _validate_number(
     value: object,
@@ -74,14 +68,13 @@ def _validate_number(
     as_int: bool,
     min_exclusive: float | None = None,
     min_inclusive: float | None = None,
-    max_inclusive: float | None = None,
-) -> int | float:
-    """Validira konačan broj (isključujući `bool`) u zadatim granicama."""
+    max_inclusive: float | None = None,) -> int | float:
+    """Provera broja u zadatim granicama."""
     allowed_types: tuple[type, ...] = (int,) if as_int else (int, float)
     if isinstance(value, bool) or not isinstance(value, allowed_types):
         expected = "ceo broj" if as_int else "realan broj"
         raise TypeError(f"Polje '{name}' mora biti {expected}.")
-
+        
     numeric: int | float = int(value) if as_int else float(value)
     if not math.isfinite(numeric):
         raise ValueError(f"Polje '{name}' mora biti konačan broj.")
@@ -92,7 +85,6 @@ def _validate_number(
         raise ValueError(f"Polje '{name}' mora biti veće ili jednako {min_inclusive}.")
     if max_inclusive is not None and numeric > max_inclusive:
         raise ValueError(f"Polje '{name}' mora biti manje ili jednako {max_inclusive}.")
-
     return numeric
 
 
@@ -102,9 +94,8 @@ def _validate_int(
     *,
     min_exclusive: int | None = None,
     min_inclusive: int | None = None,
-    max_inclusive: int | None = None,
-) -> int:
-    """Validira konačan ceo broj u zadatim granicama."""
+    max_inclusive: int | None = None,) -> int:
+    """Provera celog broja u opsegu."""
     return int(
         _validate_number(
             value,
@@ -125,7 +116,7 @@ def _validate_float(
     min_inclusive: float | None = None,
     max_inclusive: float | None = None,
 ) -> float:
-    """Validira konačan realan broj u zadatim granicama."""
+    """Provera decimalnog broja u opsegu."""
     return float(
         _validate_number(
             value,
@@ -140,8 +131,7 @@ def _validate_float(
 
 @dataclass(frozen=True)
 class BikeLimits:
-    """Tehnički limiti (minimalni i maksimalni) za MotoGP motocikl."""
-
+    """Tehnički limiti MotoGP motocikla."""
     max_engine_capacity_cc: int = 1000
     max_horsepower: int = 350
     min_weight_kg: float = 100.0
@@ -158,7 +148,6 @@ class BikeLimits:
             "max_weight_kg",
             min_inclusive=min_w,
         )
-
         object.__setattr__(self, "max_engine_capacity_cc", max_cc)
         object.__setattr__(self, "max_horsepower", max_hp)
         object.__setattr__(self, "min_weight_kg", min_w)
@@ -170,8 +159,7 @@ DEFAULT_BIKE_LIMITS = BikeLimits()
 
 @dataclass(frozen=True)
 class BikeComponents:
-    """Nepromenljiv skup tehničkih komponenti motocikla."""
-
+    """Fiksni delovi motocikla."""
     aerodynamics: str
     tyres: str
     electronics: str
@@ -184,7 +172,7 @@ class BikeComponents:
 
     @classmethod
     def from_slot_mapping(cls, mapping: Mapping[ComponentSlot | str, str]) -> Self:
-        """Gradi `BikeComponents` iz mapiranja po `ComponentSlot` ili nazivu slota."""
+        """Kreiranje BikeComponents iz mapiranja."""
         kwargs: dict[str, str] = {}
         for slot in ComponentSlot:
             if slot in mapping:
@@ -194,20 +182,19 @@ class BikeComponents:
         return cls(**cast(ComponentUpdates, kwargs))
 
     def get(self, slot: ComponentSlot) -> str:
-        """Vraća vrednost zadate komponente."""
+        """Vrednost zadate komponente."""
         if not isinstance(slot, ComponentSlot):
-            raise TypeError("Parametar 'slot' mora biti vrednost iz ComponentSlot enum-a.")
+            raise TypeError("slot mora biti iz ComponentSlot.")
         return str(getattr(self, slot.value))
 
     def with_updates(self, **changes: Unpack[ComponentUpdates]) -> Self:
-        """Vraća novu validiranu instancu komponenti sa izmenjenim vrednostima."""
+        """Nova validirana kopija sa izmenama."""
         return replace(self, **changes)
 
 
 @dataclass(frozen=True, kw_only=True)
 class MotoGPBike:
-    """Nepromenljiv model MotoGP motocikla sa potpunom domen-validacijom."""
-
+    """Nepromenljiv i validiran model MotoGP motocikla."""
     team: Team
     engine_capacity: int
     horsepower: int
@@ -217,11 +204,11 @@ class MotoGPBike:
 
     def __post_init__(self) -> None:
         if not isinstance(self.limits, BikeLimits):
-            raise TypeError("Polje 'limits' mora biti instanca klase BikeLimits.")
+            raise TypeError("limits mora biti tipa BikeLimits.")
         if not isinstance(self.team, Team):
-            raise TypeError("Polje 'team' mora biti vrednost iz Team enum-a.")
+            raise TypeError("team mora biti iz Team.")
         if not isinstance(self.components, BikeComponents):
-            raise TypeError("Polje 'components' mora biti instanca klase BikeComponents.")
+            raise TypeError("components mora biti tipa BikeComponents.")
 
         validated_engine = _validate_int(
             self.engine_capacity,
@@ -239,15 +226,14 @@ class MotoGPBike:
             self.weight,
             "weight",
             min_inclusive=self.limits.min_weight_kg,
-            max_inclusive=self.limits.max_weight_kg,
-        )
-
+            max_inclusive=self.limits.max_weight_kg,)
+        
         object.__setattr__(self, "engine_capacity", validated_engine)
         object.__setattr__(self, "horsepower", validated_hp)
         object.__setattr__(self, "weight", validated_weight)
 
     def with_updates(self, **changes: Unpack[BikeUpdates]) -> Self:
-        """Vraća novu validiranu instancu motocikla sa izmenjenim poljima."""
+        """Nova validirana kopija motocikla sa izmenama."""
         payload: dict[str, object] = dict(changes)
         if "components" in payload:
             raw_components = payload["components"]
@@ -255,30 +241,25 @@ class MotoGPBike:
                 component_dict = cast(ComponentUpdates, dict(raw_components))
                 payload["components"] = self.components.with_updates(**component_dict)
             elif not isinstance(raw_components, BikeComponents):
-                raise TypeError(
-                    "Polje 'components' mora biti BikeComponents ili mapiranje izmena."
-                )
+                raise TypeError("components mora biti BikeComponents ili mapa izmena.")
         return replace(self, **payload)
 
     def __str__(self) -> str:
         component_lines = [
             f"{slot.name.capitalize()}: {self.components.get(slot)}"
-            for slot in ComponentSlot
-        ]
+            for slot in ComponentSlot]
         lines = [
             f"Team: {self.team.value}",
             f"Engine capacity: {self.engine_capacity} cc",
             f"Horsepower: {self.horsepower} hp",
             f"Weight: {self.weight} kg",
-            *component_lines,
-        ]
+            *component_lines,]
         return "\n".join(lines)
 
 
 @dataclass
 class _PartialBikeSpecs:
-    """Interno stanje nepotpunog nacrta tokom sklapanja u builderu."""
-
+    """Interno stanje nacrta u builderu."""
     team: Team | None = None
     engine_capacity: int | None = None
     horsepower: int | None = None
@@ -286,7 +267,7 @@ class _PartialBikeSpecs:
     components: dict[ComponentSlot, str] = field(default_factory=dict)
 
     def missing_fields(self) -> list[str]:
-        """Vraća nazive obaveznih polja koja još nisu postavljena."""
+        """Nazivi nepostavljenih obaveznih polja."""
         scalar_fields: dict[str, object] = {
             "team": self.team,
             "engine_capacity": self.engine_capacity,
@@ -294,13 +275,11 @@ class _PartialBikeSpecs:
             "weight": self.weight,
         }
         missing = [name for name, val in scalar_fields.items() if val is None]
-        missing.extend(
-            slot.value for slot in ComponentSlot if slot not in self.components
-        )
+        missing.extend(slot.value for slot in ComponentSlot if slot not in self.components)
         return missing
 
     def clone(self) -> _PartialBikeSpecs:
-        """Pravi nezavisnu kopiju trenutnog nacrta."""
+        """Nezavisna kopija trenutnog nacrta."""
         return _PartialBikeSpecs(
             team=self.team,
             engine_capacity=self.engine_capacity,
@@ -311,23 +290,23 @@ class _PartialBikeSpecs:
 
 
 class MotoGPBikeBuilder:
-    """Graditelj za postepeno sklapanje i konačnu validaciju `MotoGPBike` instance."""
+    """Builder za sklapanje i validaciju MotoGPBike."""
 
     def __init__(self, limits: BikeLimits = DEFAULT_BIKE_LIMITS) -> None:
-        """Inicijalizuje builder sa zadatim limitima (ili podrazumevanim limitima)."""
+        """Inicijalizuje builder sa zadatim ili podrazumevanim limitima."""
         if not isinstance(limits, BikeLimits):
-            raise TypeError("Parametar 'limits' mora biti instanca klase BikeLimits.")
+            raise TypeError("limits mora biti tipa BikeLimits.")
         self._limits = limits
         self._specs = _PartialBikeSpecs()
 
     def clone(self) -> MotoGPBikeBuilder:
-        """Vraća novu instancu buildera sa kopiranim trenutnim nacrtom i limitima."""
+        """Nova instanca buildera sa kopijom nacrta i limita."""
         copied = MotoGPBikeBuilder(limits=self._limits)
         copied._specs = self._specs.clone()
         return copied
 
     def reset(self) -> Self:
-        """Briše trenutno unete podatke i vraća prazan nacrt."""
+        """Resetuje nacrt na prazno stanje."""
         self._specs = _PartialBikeSpecs()
         return self
 
