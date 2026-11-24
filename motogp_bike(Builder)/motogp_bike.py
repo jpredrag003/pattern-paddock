@@ -357,7 +357,7 @@ class MotoGPBikeBuilder:
         """Validira kompletan nacrt i vraća MotoGPBike."""
         missing = self._specs.missing_fields()
         if missing:
-            raise ValueError(f"Greška za MotoGPBike: nedostaju {', '.join(missing)}.)
+            raise ValueError(f"Greška za MotoGPBike: nedostaju {', '.join(missing)}.")
             
         assert self._specs.team is not None
         assert self._specs.engine_capacity is not None
