@@ -81,7 +81,7 @@ class Manufacturer(StrEnum):
 def _validate_non_empty_str(value: object, field_label: str) -> str:
     """Validira da vrednost nije prazan tekst i vraća očišćen oblik bez ivica."""
     if not isinstance(value, str):
-        raise TypeError(f"{field_label} mora biti tipa str, umesto {type(value).__name__}.)
+        raise TypeError(f"{field_label} mora biti tipa str, umesto {type(value).__name__}.")
     cleaned = value.strip()
     if not cleaned:
         raise ValueError(f"{field_label} ne sme biti prazno.")
@@ -133,7 +133,7 @@ class BikeSpec:
     """ 
     Specifikacija performansi modela motora:
         - model – naziv modela motora.
-        - max\_speed – maksimalna brzina u km/h (ceo broj veći od 0).
+        - max_speed – maksimalna brzina u km/h (ceo broj veći od 0).
         - acceleration – vreme ubrzanja od 0 do 100 km/h u sekundama (pozitivan decimalni broj).
     """
 
