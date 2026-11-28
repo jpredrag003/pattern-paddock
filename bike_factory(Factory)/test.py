@@ -5,7 +5,7 @@ import math
 from types import MappingProxyType
 import unittest
 
-from bike_factory import (
+from main import (
     BikeSpec,
     Manufacturer,
     Motorcycle,
