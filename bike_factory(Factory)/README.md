@@ -1,4 +1,4 @@
-# Bike Factory - Sistem za pravljenje motocikla
+# Bike Factory - Sistem za modelovanje motocikla
 
 ## Opis projekta
 
