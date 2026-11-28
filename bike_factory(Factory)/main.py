@@ -64,7 +64,7 @@ class Manufacturer(StrEnum):
         """Pretvara tekst u proizvođača."""
         if not isinstance(value, str):
             raise TypeError(
-                f"Manufacturer must be a str, got {type(value).__name__}."
+                f"Polje Manufacturer očekuje tekst (str), umesto {type(value).__name__}."
             )
         normalized = value.strip().casefold()
         for member in cls:
