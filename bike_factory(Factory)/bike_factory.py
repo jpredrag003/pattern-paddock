@@ -22,11 +22,11 @@ __all__ = [
 
 
 class UnknownManufacturerError(KeyError):
-    """Raised when a manufacturer is unknown or absent from the catalog."""
+    """Proizvođač nije pronađen u katalogu."""
 
 
 class BikeSpecDict(TypedDict):
-    """Serialized dictionary shape for a motorcycle performance specification."""
+    """Format rečnika za performanse motocikla."""
 
     model: str
     max_speed: int
@@ -34,7 +34,7 @@ class BikeSpecDict(TypedDict):
 
 
 class MotorcycleDict(TypedDict):
-    """Serialized dictionary shape for a motorcycle."""
+    """Format rečnika za motocikl."""
 
     manufacturer: str
     model: str
@@ -43,7 +43,7 @@ class MotorcycleDict(TypedDict):
 
 
 class RiderDict(TypedDict):
-    """Serialized dictionary shape for a rider."""
+    """Format rečnika za vozača."""
 
     name: str
     country: str
@@ -51,7 +51,7 @@ class RiderDict(TypedDict):
 
 
 class Manufacturer(StrEnum):
-    """Supported motorcycle manufacturers."""
+    """Proizvođači motocikala."""
 
     DUCATI = "Ducati"
     APRILIA = "Aprilia"
@@ -61,7 +61,7 @@ class Manufacturer(StrEnum):
 
     @classmethod
     def from_input(cls, value: object) -> Manufacturer:
-        """Parse a string (case-insensitively, ignoring surrounding whitespace) into a Manufacturer."""
+        """Pretvara tekst u proizvođača."""
         if not isinstance(value, str):
             raise TypeError(
                 f"Manufacturer must be a str, got {type(value).__name__}."
@@ -70,21 +70,21 @@ class Manufacturer(StrEnum):
         for member in cls:
             if member.value.casefold() == normalized:
                 return member
-        raise UnknownManufacturerError(f"Unknown motorcycle manufacturer: {value!r}")
+        raise UnknownManufacturerError(f"Proizvođač nije prepoznat: {value!r}")
 
     @classmethod
     def coerce(cls, value: Manufacturer | str) -> Manufacturer:
-        """Return an existing Manufacturer instance or parse a string via from_input."""
+        """Vraća postojećeg proizvođača ili pretvara tekst u njega."""
         return value if isinstance(value, cls) else cls.from_input(value)
 
 
 def _validate_non_empty_str(value: object, field_label: str) -> str:
-    """Validate that value is a non-empty string and return its stripped form."""
+    """Validira da vrednost nije prazan tekst i vraća očišćen oblik bez ivica."""
     if not isinstance(value, str):
-        raise TypeError(f"{field_label} must be a str, got {type(value).__name__}.")
+        raise TypeError(f"{field_label} mora biti tipa str, umesto {type(value).__name__}.)
     cleaned = value.strip()
     if not cleaned:
-        raise ValueError(f"{field_label} must not be empty.")
+        raise ValueError(f"{field_label} ne sme biti prazno.")
     return cleaned
 
 
@@ -94,48 +94,47 @@ def _validate_strict_int(
     *,
     min_exclusive: int | None = None,
 ) -> int:
-    """Validate that value is an int (excluding bool) and optionally strictly greater than min_exclusive."""
+    """Proverava da je vrednost int (bez bool) i po želji strogo veća od min_exclusive."""
     if isinstance(value, bool) or not isinstance(value, int):
-        raise TypeError(f"{field_label} must be an int, got {type(value).__name__}.")
+        raise TypeError(f"{field_label} mora biti tipa int, umesto {type(value).__name__}.")
     if min_exclusive is not None and value <= min_exclusive:
-        raise ValueError(f"{field_label} must be greater than {min_exclusive}.")
+        raise ValueError(f"{field_label} mora biti veće od {min_exclusive}.")
     return value
 
 
 def _validate_positive_finite_float(value: object, field_label: str) -> float:
-    """Validate that value is a finite positive number (excluding bool) and return it as float."""
+    """Proverava da je vrednost konačan pozitivan broj (bez bool) i vraća je kao float."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(
-            f"{field_label} must be a number (int or float), got {type(value).__name__}."
+            f"{field_label} mora biti broj (int ili float), umesto {type(value).__name__}."
         )
     number = float(value)
     if not math.isfinite(number) or number <= 0.0:
-        raise ValueError(f"{field_label} must be a finite number greater than 0.")
+        raise ValueError(f"{field_label} mora biti konačan broj veći od 0.")
     return number
 
 
 def _validate_mapping_arg(data: object, label: str) -> Mapping[str, object]:
-    """Validate that data implements Mapping."""
+    """Proverava da li data funkcioniše kao mapa (rečnik)."""
     if not isinstance(data, Mapping):
-        raise TypeError(f"{label} must be a Mapping, got {type(data).__name__}.")
+        raise TypeError(f"{label} mora biti Mapping, umesto {type(data).__name__}.")
     return data
 
 
 def _require_key(mapping: Mapping[str, object], key: str, label: str) -> object:
-    """Ensure a required key exists in mapping and return its value."""
+    """Proverava da li obavezni ključ postoji u mapi i vraća njegovu vrednost."""
     if key not in mapping:
-        raise KeyError(f"Missing required field {key!r} for {label}.")
+        raise KeyError(f"Obavezno polje {key!r} nedostaje u {label}.")
     return mapping[key]
 
 
 @dataclass(frozen=True, slots=True)
 class BikeSpec:
-    """Immutable performance specification for a motorcycle model.
-
-    Attributes:
-        model: Model name.
-        max_speed: Top speed in km/h (strictly positive integer).
-        acceleration: 0-100 km/h acceleration time in seconds (strictly positive finite float).
+    """ 
+    Specifikacija performansi modela motora:
+        - model – naziv modela motora.
+        - max\_speed – maksimalna brzina u km/h (ceo broj veći od 0).
+        - acceleration – vreme ubrzanja od 0 do 100 km/h u sekundama (pozitivan decimalni broj).
     """
 
     model: str
@@ -160,7 +159,7 @@ class BikeSpec:
         max_speed: int | None = None,
         acceleration: float | None = None,
     ) -> BikeSpec:
-        """Return a new BikeSpec with validated overrides, or self if no overrides are given."""
+        """Vraća novi BikeSpec sa validiranim izmenama, odnosno self ako izmene nisu zadate."""
         if model is None and max_speed is None and acceleration is None:
             return self
         return BikeSpec(
@@ -170,7 +169,7 @@ class BikeSpec:
         )
 
     def to_dict(self) -> BikeSpecDict:
-        """Serialize the specification to a dictionary."""
+        """Pretvara specifikaciju u rečnik."""
         return {
             "model": self.model,
             "max_speed": self.max_speed,
@@ -179,7 +178,7 @@ class BikeSpec:
 
     @classmethod
     def from_dict(cls, data: object) -> BikeSpec:
-        """Construct a BikeSpec from a mapping, delegating field validation to __post_init__."""
+        """Kreira BikeSpec iz mape, prepuštajući proveru polja metodi __post_init__."""
         mapping = _validate_mapping_arg(data, "specification data")
         return cls(
             model=_require_key(mapping, "model", "specification"),  # type: ignore[arg-type]
@@ -190,7 +189,7 @@ class BikeSpec:
 
 @dataclass(frozen=True, slots=True)
 class Motorcycle:
-    """Immutable motorcycle combining a Manufacturer and a BikeSpec."""
+    """Nepromenljivi motocikl koji spaja Manufacturer i BikeSpec."""
 
     manufacturer: Manufacturer
     spec: BikeSpec
@@ -198,11 +197,11 @@ class Motorcycle:
     def __post_init__(self) -> None:
         if not isinstance(self.manufacturer, Manufacturer):
             raise TypeError(
-                f"manufacturer must be a Manufacturer, got {type(self.manufacturer).__name__}."
+                f"manufacturer mora biti Manufacturer, umesto {type(self.manufacturer).__name__}."
             )
         if not isinstance(self.spec, BikeSpec):
             raise TypeError(
-                f"spec must be a BikeSpec, got {type(self.spec).__name__}."
+                f"spec mora biti BikeSpec, umesto {type(self.spec).__name__}."
             )
 
     @classmethod
@@ -213,7 +212,7 @@ class Motorcycle:
         max_speed: int,
         acceleration: float,
     ) -> Motorcycle:
-        """Construct a Motorcycle from primitive fields."""
+        """Konstruiše Motorcycle iz primitivnih polja."""
         return cls(
             manufacturer=Manufacturer.coerce(manufacturer),
             spec=BikeSpec(
@@ -225,21 +224,21 @@ class Motorcycle:
 
     @property
     def model(self) -> str:
-        """Motorcycle model name."""
+        """Naziv modela motocikla."""
         return self.spec.model
 
     @property
     def max_speed(self) -> int:
-        """Top speed in km/h."""
+        """Najveća brzina u km/h."""
         return self.spec.max_speed
 
     @property
     def acceleration(self) -> float:
-        """0-100 km/h acceleration time in seconds."""
+        """Ubrzanje 0–100 km/h u sekundama."""
         return self.spec.acceleration
 
     def to_dict(self) -> MotorcycleDict:
-        """Serialize the motorcycle to a dictionary."""
+        """Pretvara motocikl u rečnik."""
         return {
             "manufacturer": self.manufacturer.value,
             "model": self.model,
@@ -249,7 +248,7 @@ class Motorcycle:
 
     @classmethod
     def from_dict(cls, data: object) -> Motorcycle:
-        """Construct a Motorcycle from a mapping."""
+        """Kreira Motorcycle iz mape."""
         mapping = _validate_mapping_arg(data, "motorcycle data")
         raw_manufacturer = _require_key(mapping, "manufacturer", "motorcycle")
         manufacturer = Manufacturer.coerce(raw_manufacturer)  # type: ignore[arg-type]
@@ -258,15 +257,15 @@ class Motorcycle:
 
     def __str__(self) -> str:
         return (
-            f"Manufacturer: {self.manufacturer.value}\n"
+            f"Proizvođač: {self.manufacturer.value}\n"
             f"Model: {self.model}\n"
-            f"Max speed: {self.max_speed} km/h, Acceleration: {self.acceleration:g}s"
+            f"Maksimalna brzina : {self.max_speed} km/h, Acceleration: {self.acceleration:g}s"
         )
 
 
 @dataclass(frozen=True, slots=True)
 class Rider:
-    """Immutable rider entity paired with a Motorcycle."""
+    """Nepromenljivi vozač uparen sa objektom Motorcycle."""
 
     name: str
     country: str
@@ -277,13 +276,13 @@ class Rider:
         cleaned_country = _validate_non_empty_str(self.country, "Rider country")
         if not isinstance(self.bike, Motorcycle):
             raise TypeError(
-                f"bike must be a Motorcycle, got {type(self.bike).__name__}."
+                f"bike mora biti Motorcycle, umesto {type(self.bike).__name__}."
             )
         object.__setattr__(self, "name", cleaned_name)
         object.__setattr__(self, "country", cleaned_country)
 
     def to_dict(self) -> RiderDict:
-        """Serialize the rider and motorcycle to a dictionary."""
+        """Pretvara vozača i motocikl u rečnik."""
         return {
             "name": self.name,
             "country": self.country,
@@ -291,12 +290,12 @@ class Rider:
         }
 
     def to_json(self, *, indent: int | None = 2) -> str:
-        """Serialize the rider to a JSON string."""
+        """Pretvara vozača u JSON tekst."""
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
 
     @classmethod
     def from_dict(cls, data: object) -> Rider:
-        """Construct a Rider from a mapping."""
+        """Kreira Rider iz mape."""
         mapping = _validate_mapping_arg(data, "rider data")
         return cls(
             name=_require_key(mapping, "name", "rider"),  # type: ignore[arg-type]
@@ -306,18 +305,18 @@ class Rider:
 
     @classmethod
     def from_json(cls, payload: str) -> Rider:
-        """Construct a Rider from a JSON string."""
+        """Kreira Rider iz JSON teksta."""
         if not isinstance(payload, str):
-            raise TypeError(f"JSON payload must be a str, got {type(payload).__name__}.")
+            raise TypeError(f"JSON podatak mora biti str, umesto {type(payload).__name__}.")
         parsed: object = json.loads(payload)
         return cls.from_dict(parsed)
 
     def __str__(self) -> str:
-        return f"Rider: {self.name} ({self.country})\n{self.bike}"
+        return f"Vozač: {self.name} ({self.country})\n{self.bike}"
 
 
 class MotorcycleFactory:
-    """Factory for creating, filtering, and sorting motorcycles from a catalog."""
+    """Fabrika za kreiranje, filtriranje i sortiranje motocikala iz kataloga."""
 
     DEFAULT_CATALOG: Mapping[Manufacturer, BikeSpec] = MappingProxyType(
         {
@@ -337,11 +336,11 @@ class MotorcycleFactory:
         for key, spec in mapping.items():
             if not isinstance(key, Manufacturer):
                 raise TypeError(
-                    f"Catalog key must be a Manufacturer, got {type(key).__name__}."
+                    f"Ključ kataloga mora biti Manufacturer, umesto {type(key).__name__}."
                 )
             if not isinstance(spec, BikeSpec):
                 raise TypeError(
-                    f"Catalog value must be a BikeSpec, got {type(spec).__name__}."
+                    f"Vrednost kataloga mora biti BikeSpec, umesto {type(spec).__name__}."
                 )
             validated_catalog[key] = spec
 
@@ -349,7 +348,7 @@ class MotorcycleFactory:
 
     @property
     def catalog(self) -> Mapping[Manufacturer, BikeSpec]:
-        """Return a read-only view of the catalog."""
+        """Vraća read-only prikaz kataloga."""
         return MappingProxyType(self._catalog)
 
     def _build_bikes(self, entries: Iterable[tuple[Manufacturer, BikeSpec]]) -> list[Motorcycle]:
@@ -359,12 +358,12 @@ class MotorcycleFactory:
         ]
 
     def get_spec(self, manufacturer: Manufacturer | str) -> BikeSpec:
-        """Return the BikeSpec for manufacturer from the catalog."""
+        """Vraća BikeSpec za proizvođača iz kataloga."""
         resolved = Manufacturer.coerce(manufacturer)
         spec = self._catalog.get(resolved)
         if spec is None:
             raise UnknownManufacturerError(
-                f"Manufacturer is not in catalog: {resolved.value}"
+                f"Proizvođač nije u katalogu: {resolved.value}."
             )
         return spec
 
@@ -376,7 +375,7 @@ class MotorcycleFactory:
         max_speed: int | None = None,
         acceleration: float | None = None,
     ) -> Motorcycle:
-        """Create a Motorcycle from the catalog with optional field overrides."""
+        """Kreira Motorcycle iz kataloga uz opcionu izmenu polja."""
         resolved_manufacturer = Manufacturer.coerce(manufacturer)
         base_spec = self.get_spec(resolved_manufacturer)
         resolved_spec = base_spec.with_overrides(
@@ -387,14 +386,14 @@ class MotorcycleFactory:
         return Motorcycle(manufacturer=resolved_manufacturer, spec=resolved_spec)
 
     def create_all_catalog_bikes(self, *, sort_by_speed_desc: bool = False) -> list[Motorcycle]:
-        """Create one Motorcycle for each entry in the catalog."""
+        """Pravi po jedan Motorcycle za svaki unos u katalogu."""
         bikes = self._build_bikes(self._catalog.items())
         if sort_by_speed_desc:
             bikes.sort(key=lambda bike: bike.max_speed, reverse=True)
         return bikes
 
     def find_faster_than(self, min_speed: int) -> list[Motorcycle]:
-        """Return catalog motorcycles whose top speed is strictly greater than min_speed."""
+        """Vraća motocikle iz kataloga čija je maksimalna brzina veća od min_speed."""
         valid_min_speed = _validate_strict_int(min_speed, "Minimum speed")
         matching = (
             (manufacturer, spec)
@@ -405,7 +404,7 @@ class MotorcycleFactory:
 
 
 def main() -> None:
-    """Demonstrate model and factory usage."""
+    """Prikazuje korišćenje modela i fabrike."""
     factory = MotorcycleFactory()
 
     bike1 = factory.create_motorcycle("ducati")
@@ -432,9 +431,9 @@ def main() -> None:
     rebuilt_rider = Rider.from_json(json_payload)
     print("JSON round-trip equal:", rider == rebuilt_rider)
     print("---")
-    print("Faster than 305 km/h:", [b.model for b in factory.find_faster_than(305)])
+    print("Preko 305 km/h:", [b.model for b in factory.find_faster_than(305)])
     print(
-        "Sorted by speed (desc):",
+        "Sortirano po brzini (desc):",
         [b.model for b in factory.create_all_catalog_bikes(sort_by_speed_desc=True)],
     )
 
